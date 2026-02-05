@@ -2,16 +2,14 @@ import { useState } from "react";
 
 function App() {
   const [file, setFile] = useState<File | null>(null);
-  const [preview, setPreview] = useState<string | null>(null);
   const [prediction, setPrediction] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const img = e.target.files?.[0];
-    if (img) {
-      setFile(img);
-      setPreview(URL.createObjectURL(img));
+    const selected = e.target.files?.[0];
+    if (selected) {
+      setFile(selected);
       setPrediction(null);
       setError(null);
     }
@@ -19,7 +17,7 @@ function App() {
 
   const handlePredict = async () => {
     if (!file) {
-      setError("Please upload a valid MRI image.");
+      setError("Please upload an MRI image first.");
       return;
     }
 
@@ -44,91 +42,129 @@ function App() {
     }
   };
 
-  const getBadgeStyle = () => {
-    if (!prediction) return "";
-    if (prediction.includes("Non"))
-      return "bg-emerald-100 text-emerald-900 border-emerald-400";
-    if (prediction.includes("Mild"))
-      return "bg-amber-100 text-amber-900 border-amber-400";
-    return "bg-red-100 text-red-900 border-red-400";
-  };
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-blue-900 flex items-center justify-center px-6">
+    <>
+      <style>{`
+        body {
+          margin: 0;
+          font-family: Arial, sans-serif;
+        }
 
-      {/* MAIN CARD */}
-      <div className="bg-white w-full max-w-3xl rounded-3xl shadow-2xl p-10">
+        .page {
+          min-height: 100vh;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          background: #0f172a;
+        }
 
-        {/* HEADER */}
-        <div className="border-b pb-6 text-center">
-          <h1 className="text-4xl font-extrabold text-blue-900 tracking-tight">
-            Alzheimer’s AI Diagnosis
-          </h1>
-          <p className="mt-2 text-gray-600 font-medium">
-            Clinical Decision Support System
-          </p>
-        </div>
+        .card {
+          width: 100%;
+          max-width: 450px;
+          height: 520px;
+          background: white;
+          border-radius: 16px;
+          padding: 24px;
+          display: flex;
+          flex-direction: column;
+        }
 
-        {/* UPLOAD */}
-        <div className="mt-8">
-          <label className="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide">
-            MRI Image Upload
-          </label>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleFileChange}
-            className="w-full rounded-xl border-2 border-slate-300 p-3 text-sm font-semibold focus:ring-4 focus:ring-blue-300"
-          />
-        </div>
+        .center-content {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          text-align: center;
+        }
 
-        {/* PREVIEW */}
-        {preview && (
-          <div className="mt-6">
-            <p className="text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide">
-              Image Preview
-            </p>
-            <div className="border-2 border-slate-300 rounded-2xl overflow-hidden shadow-lg">
-              <img
-                src={preview}
-                alt="MRI Preview"
-                className="w-full h-72 object-cover"
-              />
+        .title {
+          font-size: 28px;
+          font-weight: bold;
+          color: #1e3a8a;
+        }
+
+        .subtitle {
+          margin-top: 8px;
+          color: #475569;
+          font-size: 14px;
+        }
+
+        .upload {
+          margin-top: 30px;
+        }
+
+        .button {
+          width: 100%;
+          padding: 14px;
+          font-size: 16px;
+          font-weight: bold;
+          background: #1e40af;
+          color: white;
+          border: none;
+          border-radius: 10px;
+          cursor: pointer;
+          margin-top: 20px;
+        }
+
+        .button:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+
+        .footer {
+          font-size: 11px;
+          text-align: center;
+          color: #64748b;
+          margin-top: 10px;
+        }
+
+        .result {
+          margin-top: 16px;
+          font-weight: bold;
+          color: #065f46;
+        }
+
+        .error {
+          margin-top: 16px;
+          color: #b91c1c;
+          font-size: 14px;
+        }
+      `}</style>
+
+      <div className="page">
+        <div className="card">
+
+          {/* CENTER */}
+          <div className="center-content">
+            <div className="title">Alzheimer’s AI Diagnosis</div>
+            <div className="subtitle">
+              MRI-Based Clinical Decision Support
             </div>
+
+            <div className="upload">
+              <input type="file" onChange={handleFileChange} />
+            </div>
+
+            {prediction && <div className="result">{prediction}</div>}
+            {error && <div className="error">{error}</div>}
           </div>
-        )}
 
-        {/* BUTTON */}
-        <button
-          onClick={handlePredict}
-          disabled={loading}
-          className="mt-10 w-full bg-blue-900 hover:bg-blue-800 text-white py-4 rounded-2xl font-extrabold text-lg tracking-wide transition disabled:opacity-60"
-        >
-          {loading ? "Analyzing MRI Scan..." : "RUN AI ANALYSIS"}
-        </button>
-
-        {/* RESULT */}
-        {prediction && (
-          <div
-            className={`mt-8 p-5 border-2 rounded-2xl text-center font-extrabold text-xl ${getBadgeStyle()}`}
+          {/* BOTTOM BUTTON */}
+          <button
+            className="button"
+            onClick={handlePredict}
+            disabled={loading}
           >
-            Diagnosis Result: {prediction}
-          </div>
-        )}
+            {loading ? "Analyzing..." : "Run AI Analysis"}
+          </button>
 
-        {/* ERROR */}
-        {error && (
-          <div className="mt-6 p-4 bg-red-100 border-2 border-red-400 text-red-900 rounded-xl font-semibold text-center">
-            {error}
+          <div className="footer">
+            For research purposes only. Not a medical diagnosis.
           </div>
-        )}
 
-        {/* FOOTER */}
-        <p className="mt-10 text-xs text-gray-400 text-center">
-          For research and screening purposes only. Not a replacement for medical diagnosis.
-        </p>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 
